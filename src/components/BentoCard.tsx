@@ -47,7 +47,6 @@ export const BentoCard: React.FC<BentoCardProps> = ({
   useEffect(() => {
     if (mounted) {
       updateRegistry(id, {
-        id,
         colStart: gridState.colStart,
         rowStart: gridState.rowStart,
         colSpan: gridState.colSpan,
@@ -175,7 +174,7 @@ export const BentoCard: React.FC<BentoCardProps> = ({
               const newCol = Math.max(1, startCol + deltaX);
               const newRow = Math.max(1, startRow + deltaY);
               
-              if (!checkCollision(id, { id, colStart: newCol, rowStart: newRow, colSpan: gridState.colSpan, rowSpan: gridState.rowSpan })) {
+              if (!checkCollision(id, { colStart: newCol, rowStart: newRow, colSpan: gridState.colSpan, rowSpan: gridState.rowSpan })) {
                 setGridState(prev => ({ ...prev, colStart: newCol, rowStart: newRow }));
               }
             };
@@ -215,7 +214,7 @@ export const BentoCard: React.FC<BentoCardProps> = ({
               const newSpanW = Math.max(2, Math.min(12, startSpanW + deltaX));
               const newSpanH = Math.max(2, startSpanH + deltaY);
               
-              if (!checkCollision(id, { id, colStart: gridState.colStart, rowStart: gridState.rowStart, colSpan: newSpanW, rowSpan: newSpanH })) {
+              if (!checkCollision(id, { colStart: gridState.colStart, rowStart: gridState.rowStart, colSpan: newSpanW, rowSpan: newSpanH })) {
                 setGridState(prev => ({ ...prev, colSpan: newSpanW, rowSpan: newSpanH }));
               }
             };
