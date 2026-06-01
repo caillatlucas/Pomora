@@ -16,7 +16,8 @@ export const PomodoroTimer = () => {
   const [mode, setMode] = useState<Mode>("work");
   const [timeLeft, setTimeLeft] = useState(WORK_TIME);
   const [isActive, setIsActive] = useState(false);
-  const { addWorkMinutes } = useSettings();
+  const [sessionCount, setSessionCount] = useState(0);
+  const { addWorkMinutes, notificationSound } = useSettings();
 
   useEffect(() => {
     if (typeof window !== "undefined" && "Notification" in window) {
@@ -27,18 +28,28 @@ export const PomodoroTimer = () => {
   }, []);
 
   const playNotification = useCallback(() => {
+    try {
+      if (notificationSound) {
+        const audio = new Audio(notificationSound);
+        audio.play().catch(e => console.error("Audio play failed:", e));
+      }
+    } catch (e) {
+      console.error("Failed to play sound", e);
+    }
+    
     if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
       new Notification("Pomora", {
         body: mode === "work" ? "Session terminée ! Prenez une pause." : "Pause terminée ! C'est l'heure de se concentrer.",
       });
     }
-  }, [mode]);
+  }, [mode, notificationSound]);
 
   const handleCycleEnd = useCallback(() => {
     playNotification();
     setIsActive(false);
     if (mode === "work") {
       addWorkMinutes(WORK_TIME / 60);
+      setSessionCount(prev => prev + 1);
       setMode("shortBreak");
       setTimeLeft(SHORT_BREAK);
     } else {
@@ -54,7 +65,8 @@ export const PomodoroTimer = () => {
       interval = setInterval(() => {
         setTimeLeft((prev) => {
           if (prev <= 1) {
-            handleCycleEnd();
+            if (interval) clearInterval(interval);
+            setTimeout(() => handleCycleEnd(), 0);
             return 0;
           }
           return prev - 1;
@@ -155,9 +167,18 @@ export const PomodoroTimer = () => {
           {isActive ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 ml-1" />}
         </button>
 
-        <button onClick={skip} className="p-3 rounded-full hover:bg-white/5 transition-colors group focus:outline-none" title="Passer au suivant">
-          <SkipForward className="w-5 h-5 text-white/40 group-hover:text-primary transition-all group-hover:scale-110" />
+        <button 
+          onClick={skip} 
+          disabled={mode === "work"}
+          className={`p-3 rounded-full transition-colors group focus:outline-none ${mode === "work" ? "opacity-30 cursor-not-allowed" : "hover:bg-white/5"}`} 
+          title={mode === "work" ? "Impossible de passer le temps de travail" : "Passer au suivant"}
+        >
+          <SkipForward className={`w-5 h-5 ${mode === "work" ? "text-white/40" : "text-white/40 group-hover:text-primary transition-all group-hover:scale-110"}`} />
         </button>
+      </div>
+
+      <div className={`mt-4 text-xs font-body uppercase tracking-widest text-white/50 ${isFocusMode ? 'mt-8' : ''}`}>
+        Sessions complétées : <span className="text-primary font-bold">{sessionCount}</span>
       </div>
 
       {/* Liquid Glow de fond */}

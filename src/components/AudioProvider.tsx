@@ -28,6 +28,19 @@ interface AudioContextType {
   youtubeMetadata: YoutubeMetadata | null;
   youtubeVolume: number;
   setYoutubeVolume: (vol: number) => void;
+  nextVideo: () => void;
+  previousVideo: () => void;
+  seekTo: (seconds: number) => void;
+  getCurrentTime: () => number;
+  getDuration: () => number;
+  isLooping: boolean;
+  toggleLoop: () => void;
+  isShuffle: boolean;
+  toggleShuffle: () => void;
+  playlistIndex: number;
+  playlistLength: number;
+  playlist: string[];
+  playVideoAt: (index: number) => void;
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
@@ -79,6 +92,11 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
   const ytPlayerRef = useRef<any>(null);
 
   const [youtubeVolume, setYoutubeVolume] = useState(50);
+  const [isLooping, setIsLooping] = useState(true);
+  const [isShuffle, setIsShuffle] = useState(false);
+  const [playlistIndex, setPlaylistIndex] = useState(0);
+  const [playlistLength, setPlaylistLength] = useState(0);
+  const [playlist, setPlaylist] = useState<string[]>([]);
 
   // Intervalle pour rafraîchir les métadonnées (utile pour les playlists)
   useEffect(() => {
@@ -99,6 +117,20 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
               return prev;
             });
           }
+        }
+        if (ytPlayerRef.current.getPlaylist) {
+          const pl = ytPlayerRef.current.getPlaylist();
+          if (pl) {
+            setPlaylistLength(pl.length);
+            setPlaylist(prev => {
+              if (prev.length !== pl.length || prev.some((id, i) => id !== pl[i])) {
+                return [...pl];
+              }
+              return prev;
+            });
+          }
+          const index = ytPlayerRef.current.getPlaylistIndex();
+          if (typeof index === 'number') setPlaylistIndex(index);
         }
       }, 2000); // Check every 2s
     }
@@ -178,7 +210,7 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
           // 1 = PLAYING, 2 = PAUSED, 0 = ENDED (should loop though)
           if (event.data === 1) {
             setIsRadioPlaying(true);
-            ytPlayerRef.current.setLoop(true); // Ensure loop is set when playing
+            ytPlayerRef.current.setLoop(isLooping); // Ensure loop is set when playing
             const data = ytPlayerRef.current.getVideoData();
             if (data && data.video_id) {
               setYoutubeMetadata({ title: data.title, author: data.author, videoId: data.video_id });
@@ -252,8 +284,76 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const nextVideo = () => {
+    if (ytPlayerRef.current && isPlayerReady) ytPlayerRef.current.nextVideo();
+  };
+
+  const previousVideo = () => {
+    if (ytPlayerRef.current && isPlayerReady) ytPlayerRef.current.previousVideo();
+  };
+
+  const seekTo = (seconds: number) => {
+    if (ytPlayerRef.current && isPlayerReady) ytPlayerRef.current.seekTo(seconds, true);
+  };
+
+  const playVideoAt = (index: number) => {
+    if (ytPlayerRef.current && isPlayerReady) {
+      ytPlayerRef.current.playVideoAt(index);
+    }
+  };
+
+  const getCurrentTime = () => {
+    return ytPlayerRef.current && isPlayerReady ? ytPlayerRef.current.getCurrentTime() : 0;
+  };
+
+  const getDuration = () => {
+    return ytPlayerRef.current && isPlayerReady ? ytPlayerRef.current.getDuration() : 0;
+  };
+
+  const toggleLoop = () => {
+    setIsLooping(prev => {
+      const newLoop = !prev;
+      if (ytPlayerRef.current && isPlayerReady) {
+        ytPlayerRef.current.setLoop(newLoop);
+      }
+      return newLoop;
+    });
+  };
+
+  const toggleShuffle = () => {
+    setIsShuffle(prev => {
+      const newShuffle = !prev;
+      if (ytPlayerRef.current && isPlayerReady) {
+        ytPlayerRef.current.setShuffle(newShuffle);
+        // Force refresh playlist array after shuffle
+        setTimeout(() => {
+          if (ytPlayerRef.current.getPlaylist) {
+            const pl = ytPlayerRef.current.getPlaylist();
+            if (pl) {
+              setPlaylist(prev => {
+                if (prev.length !== pl.length || prev.some((id, i) => id !== pl[i])) {
+                  return [...pl];
+                }
+                return prev;
+              });
+            }
+            const index = ytPlayerRef.current.getPlaylistIndex();
+            if (typeof index === 'number') setPlaylistIndex(index);
+          }
+        }, 500);
+      }
+      return newShuffle;
+    });
+  };
+
   return (
-    <AudioContext.Provider value={{ tracks, toggleTrack, setVolume, isRadioPlaying, toggleRadio, youtubeMetadata, youtubeVolume, setYoutubeVolume: updateYoutubeVolume }}>
+    <AudioContext.Provider value={{ 
+      tracks, toggleTrack, setVolume, isRadioPlaying, toggleRadio, 
+      youtubeMetadata, youtubeVolume, setYoutubeVolume: updateYoutubeVolume,
+      nextVideo, previousVideo, seekTo, getCurrentTime, getDuration,
+      isLooping, toggleLoop, isShuffle, toggleShuffle,
+      playlistIndex, playlistLength, playlist, playVideoAt
+    }}>
       {children}
     </AudioContext.Provider>
   );

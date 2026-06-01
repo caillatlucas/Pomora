@@ -23,7 +23,7 @@ export const BentoCard: React.FC<BentoCardProps> = ({
 }) => {
   const ref = useRef<HTMLDivElement>(null);
   const { blurOpacity } = useSettings();
-  const { isEditing, isFocusMode } = useEditor();
+  const { isEditing, isFocusMode, updateRegistry, removeRegistry, checkCollision } = useEditor();
 
   const [mounted, setMounted] = useState(false);
   const [gridState, setGridState] = useState({
@@ -38,10 +38,24 @@ export const BentoCard: React.FC<BentoCardProps> = ({
     const saved = localStorage.getItem(`pomora_grid_${id}`);
     if (saved) {
       try {
-        setGridState(JSON.parse(saved));
+        const parsed = JSON.parse(saved);
+        setGridState(parsed);
       } catch(e) {}
     }
   }, [id]);
+
+  useEffect(() => {
+    if (mounted) {
+      updateRegistry(id, {
+        id,
+        colStart: gridState.colStart,
+        rowStart: gridState.rowStart,
+        colSpan: gridState.colSpan,
+        rowSpan: gridState.rowSpan
+      });
+    }
+    return () => removeRegistry(id);
+  }, [id, gridState, mounted]);
 
   // 3D Parallax & LiquidGlass
   const mouseX = useMotionValue(0);
@@ -87,7 +101,7 @@ export const BentoCard: React.FC<BentoCardProps> = ({
         opacity: isHidden ? 0 : 1,
         scale: isHidden ? 0.95 : 1,
       }}
-      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
       style={{
         gridColumn: isFocusMode && id === "timer" ? undefined : `${gridState.colStart} / span ${gridState.colSpan}`,
         gridRow: isFocusMode && id === "timer" ? undefined : `${gridState.rowStart} / span ${gridState.rowSpan}`,
@@ -138,7 +152,7 @@ export const BentoCard: React.FC<BentoCardProps> = ({
           transform: isEditing || isFocusMode ? "none" : "translateZ(30px)",
           transformStyle: "preserve-3d",
         }}
-        className={`h-full w-full p-6 flex flex-col relative z-10 ${isFocusMode && id === "timer" ? "items-center justify-center" : ""}`}
+        className={`h-full w-full p-6 flex flex-col relative z-10 ${isFocusMode && id === "timer" ? "items-center justify-center" : ""} overflow-y-auto custom-scrollbar overflow-x-hidden`}
       >
         {children}
       </motion.div>
@@ -161,7 +175,9 @@ export const BentoCard: React.FC<BentoCardProps> = ({
               const newCol = Math.max(1, startCol + deltaX);
               const newRow = Math.max(1, startRow + deltaY);
               
-              setGridState(prev => ({ ...prev, colStart: newCol, rowStart: newRow }));
+              if (!checkCollision(id, { id, colStart: newCol, rowStart: newRow, colSpan: gridState.colSpan, rowSpan: gridState.rowSpan })) {
+                setGridState(prev => ({ ...prev, colStart: newCol, rowStart: newRow }));
+              }
             };
 
             const onPointerUp = () => {
@@ -199,7 +215,9 @@ export const BentoCard: React.FC<BentoCardProps> = ({
               const newSpanW = Math.max(2, Math.min(12, startSpanW + deltaX));
               const newSpanH = Math.max(2, startSpanH + deltaY);
               
-              setGridState(prev => ({ ...prev, colSpan: newSpanW, rowSpan: newSpanH }));
+              if (!checkCollision(id, { id, colStart: gridState.colStart, rowStart: gridState.rowStart, colSpan: newSpanW, rowSpan: newSpanH })) {
+                setGridState(prev => ({ ...prev, colSpan: newSpanW, rowSpan: newSpanH }));
+              }
             };
 
             const onPointerUp = () => {

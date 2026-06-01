@@ -8,15 +8,17 @@ import { useToast } from "./ToastProvider";
 
 export const SettingsModal = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { backgroundUrl, setBackgroundUrl, blurOpacity, setBlurOpacity, youtubeUrl, setYoutubeUrl } = useSettings();
+  const { backgroundUrl, setBackgroundUrl, blurOpacity, setBlurOpacity, youtubeUrl, setYoutubeUrl, notificationSound, setNotificationSound } = useSettings();
   const { addToast } = useToast();
   const [bgInput, setBgInput] = useState(backgroundUrl || "");
   const [ytInput, setYtInput] = useState(youtubeUrl || "");
+  const [notifInput, setNotifInput] = useState(notificationSound || "");
   const [localBlur, setLocalBlur] = useState(blurOpacity);
 
   const handleSave = () => {
     setBackgroundUrl(bgInput);
     setYoutubeUrl(ytInput);
+    setNotificationSound(notifInput);
     setBlurOpacity(localBlur);
     setIsOpen(false);
     addToast("Paramètres LiquidGlass sauvegardés.");
@@ -74,6 +76,17 @@ export const SettingsModal = () => {
                     value={ytInput}
                     onChange={(e) => setYtInput(e.target.value)}
                     placeholder="https://www.youtube.com/watch?v=... ou &list=..."
+                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary transition-colors"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-white/70">URL Son de Notification (MP3, OGG, M4A)</label>
+                  <input 
+                    type="text" 
+                    value={notifInput}
+                    onChange={(e) => setNotifInput(e.target.value)}
+                    placeholder="https://..."
                     className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary transition-colors"
                   />
                 </div>

@@ -1,14 +1,14 @@
 "use client";
 
 import React from "react";
-import { LayoutDashboard, Maximize2, Minimize2, CloudRain } from "lucide-react";
+import { LayoutDashboard, Maximize2, Minimize2, CloudRain, FolderOpen, Play, Pause, SkipForward } from "lucide-react";
 import { useEditor } from "./EditorProvider";
 import { useBackgroundAudio } from "./AudioProvider";
 import { motion } from "framer-motion";
 
-export const FloatingToolbar = () => {
+export const FloatingToolbar = ({ onToggleDocs, isDocsOpen }: { onToggleDocs?: () => void, isDocsOpen?: boolean }) => {
   const { isEditing, setIsEditing, isFocusMode, setIsFocusMode } = useEditor();
-  const { tracks, toggleTrack } = useBackgroundAudio();
+  const { tracks, toggleTrack, isRadioPlaying, toggleRadio, nextVideo } = useBackgroundAudio();
   
   const rainTrack = tracks['rain'];
 
@@ -26,6 +26,34 @@ export const FloatingToolbar = () => {
         >
           <Minimize2 className="w-5 h-5" />
         </button>
+
+        <div className="w-px h-6 bg-white/10 mx-2" />
+
+        <button 
+          onClick={toggleRadio}
+          className="p-3 rounded-xl transition-all text-white hover:bg-white/10"
+          title="Play/Pause Musique"
+        >
+          {isRadioPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
+        </button>
+
+        <button 
+          onClick={nextVideo}
+          className="p-3 rounded-xl transition-all text-white/50 hover:bg-white/10 hover:text-white"
+          title="Musique suivante"
+        >
+          <SkipForward className="w-5 h-5" />
+        </button>
+
+        {rainTrack && (
+          <button 
+            onClick={() => toggleTrack('rain')}
+            className={`p-3 rounded-xl transition-all ${rainTrack.isActive ? 'bg-primary/20 text-primary shadow-[0_0_15px_rgba(255,49,49,0.2)]' : 'text-white/50 hover:bg-white/10 hover:text-white'}`}
+            title="Bruit de pluie"
+          >
+            <CloudRain className="w-5 h-5" />
+          </button>
+        )}
       </motion.div>
     );
   }
@@ -43,6 +71,16 @@ export const FloatingToolbar = () => {
       >
         <LayoutDashboard className="w-5 h-5" />
       </button>
+
+      {onToggleDocs && (
+        <button 
+          onClick={onToggleDocs}
+          className={`p-3 rounded-xl transition-all ${isDocsOpen ? 'bg-primary/20 text-primary shadow-[0_0_15px_rgba(255,49,49,0.2)]' : 'text-white/50 hover:bg-white/10 hover:text-white'}`}
+          title="Documents & sources"
+        >
+          <FolderOpen className="w-5 h-5" />
+        </button>
+      )}
 
       <button 
         onClick={() => setIsFocusMode(true)}

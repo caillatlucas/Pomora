@@ -1,16 +1,47 @@
 "use client";
 
 import React, { useState } from "react";
-import { Play, Pause, CloudRain, Music } from "lucide-react";
+import { Play, Pause, CloudRain, Music, SkipForward, SkipBack, Repeat, Shuffle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useBackgroundAudio } from "./AudioProvider";
 import { useSettings } from "./SettingsProvider";
 
 export const AmbientPlayer = () => {
-  const { isRadioPlaying, toggleRadio, youtubeMetadata, tracks, setVolume, youtubeVolume, setYoutubeVolume } = useBackgroundAudio();
+  const { 
+    isRadioPlaying, toggleRadio, youtubeMetadata, tracks, setVolume, youtubeVolume, setYoutubeVolume,
+    nextVideo, previousVideo, seekTo, getCurrentTime, getDuration, isLooping, toggleLoop, isShuffle, toggleShuffle,
+    playlistIndex, playlistLength
+  } = useBackgroundAudio();
+
+  const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
+
+  React.useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isRadioPlaying) {
+      interval = setInterval(() => {
+        setProgress(getCurrentTime() || 0);
+        setDuration(getDuration() || 0);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [isRadioPlaying, getCurrentTime, getDuration]);
 
   const bars = Array.from({ length: 8 });
   const coverUrl = youtubeMetadata?.videoId ? `https://img.youtube.com/vi/${youtubeMetadata.videoId}/maxresdefault.jpg` : null;
+
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = parseFloat(e.target.value);
+    setProgress(val);
+    seekTo(val);
+  };
+
+  const formatTime = (seconds: number) => {
+    if (!seconds || isNaN(seconds)) return "0:00";
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
 
   return (
     <div className="flex flex-col justify-between items-center w-full h-full relative z-10 pt-2 font-body overflow-hidden rounded-xl">
@@ -29,7 +60,7 @@ export const AmbientPlayer = () => {
       </AnimatePresence>
 
       {/* Metadata Info (Titre & Artiste) */}
-      <div className="w-full px-2 mb-3 h-10 flex flex-col justify-center overflow-hidden relative">
+      <div className="w-full px-2 mb-4 flex flex-col justify-center relative flex-shrink-0">
         <AnimatePresence mode="wait">
           <motion.div 
             key={youtubeMetadata?.videoId || 'none'}
@@ -40,13 +71,15 @@ export const AmbientPlayer = () => {
           >
             {youtubeMetadata ? (
               <>
-                {/* Scrolling marquee effect for title if too long */}
-                <div className="w-full overflow-hidden whitespace-nowrap">
-                  <div className="inline-block animate-[marquee_10s_linear_infinite] hover:animate-none">
-                    <span className="text-xs font-bold text-white drop-shadow-md pr-8">{youtubeMetadata.title}</span>
-                  </div>
+                <h3 className="text-xl font-bold font-display text-white mb-1 drop-shadow-[0_0_10px_rgba(255,255,255,0.3)] truncate max-w-full">
+                  {youtubeMetadata ? youtubeMetadata.title : "Pomora Radio"}
+                </h3>
+                <p className="text-sm font-body text-white/50 drop-shadow-md truncate max-w-full">
+                  {youtubeMetadata ? youtubeMetadata.author : "Deep Focus Beats"}
+                </p>
+                <div className="mt-2 text-[10px] text-white/40 uppercase tracking-widest font-bold bg-black/30 px-2 py-0.5 rounded-full inline-block">
+                  {playlistLength > 0 ? `File d'attente : ${playlistIndex + 1} / ${playlistLength}` : "Aucune file d'attente (Vidéo unique)"}
                 </div>
-                <p className="text-[10px] text-white/60 truncate drop-shadow-sm">{youtubeMetadata.author}</p>
               </>
             ) : (
               <p className="text-xs text-white/40 italic">En attente du flux...</p>
@@ -67,12 +100,40 @@ export const AmbientPlayer = () => {
         ))}
       </div>
       
-      <button 
-        onClick={toggleRadio}
-        className="p-3 rounded-full bg-primary text-white hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(255,49,49,0.4)] mb-3 z-10 relative"
-      >
-        {isRadioPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
-      </button>
+      <div className="w-full px-4 mb-2 relative z-10 flex flex-col gap-1">
+        <input 
+          type="range" 
+          min="0" max={duration || 100} step="1"
+          value={progress}
+          onChange={handleSeek}
+          className="w-full h-1 bg-white/20 hover:bg-white/30 transition-colors rounded-lg appearance-none cursor-pointer outline-none [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-2.5 [&::-webkit-slider-thumb]:h-2.5 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full"
+        />
+        <div className="flex justify-between text-[9px] text-white/50 font-bold">
+          <span>{formatTime(progress)}</span>
+          <span>{formatTime(duration)}</span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4 mb-3 z-10 relative">
+        <button onClick={toggleShuffle} className={`p-2 rounded-full transition-colors ${isShuffle ? 'text-primary drop-shadow-[0_0_5px_rgba(255,49,49,0.8)]' : 'text-white/40 hover:text-white/60'}`}>
+          <Shuffle className="w-3 h-3" />
+        </button>
+        <button onClick={toggleLoop} className={`p-2 rounded-full transition-colors ${isLooping ? 'text-primary drop-shadow-[0_0_5px_rgba(255,49,49,0.8)]' : 'text-white/40 hover:text-white/60'}`}>
+          <Repeat className="w-3 h-3" />
+        </button>
+        <button onClick={previousVideo} className="p-2 rounded-full text-white/60 hover:text-white transition-colors">
+          <SkipBack className="w-4 h-4" />
+        </button>
+        <button 
+          onClick={toggleRadio}
+          className="p-3 rounded-full bg-primary text-white hover:bg-primary/90 transition-all hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(255,49,49,0.4)]"
+        >
+          {isRadioPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
+        </button>
+        <button onClick={nextVideo} className="p-2 rounded-full text-white/60 hover:text-white transition-colors">
+          <SkipForward className="w-4 h-4" />
+        </button>
+      </div>
 
       {/* Contrôles de volume */}
       <div className="flex flex-col gap-2 mt-auto w-full px-4 pb-2 z-10 relative">

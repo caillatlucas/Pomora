@@ -19,6 +19,8 @@ interface SettingsContextType {
   dailyWorkLog: Record<string, number>;
   currentStreak: number;
   addWorkMinutes: (minutes: number) => void;
+  notificationSound: string;
+  setNotificationSound: (url: string) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -44,6 +46,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [totalWorkMinutes, setTotalWorkMinutes] = useState(0);
   const [dailyWorkLog, setDailyWorkLog] = useState<Record<string, number>>({});
   const [currentStreak, setCurrentStreak] = useState(0);
+  const [notificationSound, setNotificationSound] = useState("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -55,6 +58,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     const log = localStorage.getItem("pomora_dailyWorkLog");
     const streak = localStorage.getItem("pomora_currentStreak");
     const totalMinutes = localStorage.getItem("pomora_totalWorkMinutes");
+    const notif = localStorage.getItem("pomora_notificationSound");
 
     if (bg) setBackgroundUrl(bg);
     if (blur) setBlurOpacity(Number(blur));
@@ -63,6 +67,7 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     if (log) setDailyWorkLog(JSON.parse(log));
     if (streak) setCurrentStreak(Number(streak));
     if (totalMinutes) setTotalWorkMinutes(Number(totalMinutes));
+    if (notif) setNotificationSound(notif);
   }, []);
 
   const handleSetBg = (url: string) => {
@@ -83,6 +88,11 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const handleSetFavorites = (favs: YoutubeFavorite[]) => {
     setYoutubeFavorites(favs);
     localStorage.setItem("pomora_youtubeFavs", JSON.stringify(favs));
+  };
+
+  const handleSetNotificationSound = (url: string) => {
+    setNotificationSound(url);
+    localStorage.setItem("pomora_notificationSound", url);
   };
 
   const addWorkMinutes = (minutes: number) => {
@@ -126,7 +136,9 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         setYoutubeFavorites: handleSetFavorites,
         dailyWorkLog,
         currentStreak,
-        addWorkMinutes
+        addWorkMinutes,
+        notificationSound,
+        setNotificationSound: handleSetNotificationSound
       }}
     >
       <div style={{ opacity: mounted ? 1 : 0 }} className="transition-opacity duration-300 min-h-screen">
