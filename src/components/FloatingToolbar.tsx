@@ -5,10 +5,12 @@ import { LayoutDashboard, Maximize2, Minimize2, CloudRain, FolderOpen, Play, Pau
 import { useEditor } from "./EditorProvider";
 import { useBackgroundAudio } from "./AudioProvider";
 import { motion } from "framer-motion";
+import { useUISound } from "@/hooks/useUISound";
 
 export const FloatingToolbar = ({ onToggleDocs, isDocsOpen }: { onToggleDocs?: () => void, isDocsOpen?: boolean }) => {
   const { isEditing, setIsEditing, isFocusMode, setIsFocusMode } = useEditor();
   const { tracks, toggleTrack, isRadioPlaying, toggleRadio, nextVideo } = useBackgroundAudio();
+  const { playSound } = useUISound();
   
   const rainTrack = tracks['rain'];
 
@@ -20,7 +22,7 @@ export const FloatingToolbar = ({ onToggleDocs, isDocsOpen }: { onToggleDocs?: (
         className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] flex items-center gap-2 p-2 rounded-2xl bg-black/80 backdrop-blur-[20px] border border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.5)]"
       >
         <button 
-          onClick={() => setIsFocusMode(false)}
+          onClick={() => { playSound("click"); setIsFocusMode(false); }}
           className="p-3 rounded-xl transition-all text-primary hover:bg-white/10 hover:text-white"
           title="Quitter le plein écran"
         >
@@ -30,7 +32,7 @@ export const FloatingToolbar = ({ onToggleDocs, isDocsOpen }: { onToggleDocs?: (
         <div className="w-px h-6 bg-white/10 mx-2" />
 
         <button 
-          onClick={toggleRadio}
+          onClick={() => { playSound("click"); toggleRadio(); }}
           className="p-3 rounded-xl transition-all text-white hover:bg-white/10"
           title="Play/Pause Musique"
         >
@@ -38,7 +40,7 @@ export const FloatingToolbar = ({ onToggleDocs, isDocsOpen }: { onToggleDocs?: (
         </button>
 
         <button 
-          onClick={nextVideo}
+          onClick={() => { playSound("click"); nextVideo(); }}
           className="p-3 rounded-xl transition-all text-white/50 hover:bg-white/10 hover:text-white"
           title="Musique suivante"
         >
@@ -47,7 +49,7 @@ export const FloatingToolbar = ({ onToggleDocs, isDocsOpen }: { onToggleDocs?: (
 
         {rainTrack && (
           <button 
-            onClick={() => toggleTrack('rain')}
+            onClick={() => { playSound("click"); toggleTrack('rain'); }}
             className={`p-3 rounded-xl transition-all ${rainTrack.isActive ? 'bg-primary/20 text-primary shadow-[0_0_15px_rgba(255,49,49,0.2)]' : 'text-white/50 hover:bg-white/10 hover:text-white'}`}
             title="Bruit de pluie"
           >
@@ -65,7 +67,7 @@ export const FloatingToolbar = ({ onToggleDocs, isDocsOpen }: { onToggleDocs?: (
       className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-2 p-2 rounded-2xl bg-[#0f0f0f]/60 backdrop-blur-[20px] saturate-[180%] border border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.5)]"
     >
       <button 
-        onClick={() => setIsEditing(!isEditing)}
+        onClick={() => { playSound("click"); setIsEditing(!isEditing); }}
         className={`p-3 rounded-xl transition-all ${isEditing ? 'bg-primary text-white shadow-[0_0_15px_rgba(255,49,49,0.5)]' : 'text-white/50 hover:bg-white/10 hover:text-white'}`}
         title="Éditer le Layout (Drag & Drop)"
       >
@@ -74,7 +76,7 @@ export const FloatingToolbar = ({ onToggleDocs, isDocsOpen }: { onToggleDocs?: (
 
       {onToggleDocs && (
         <button 
-          onClick={onToggleDocs}
+          onClick={() => { playSound("click"); onToggleDocs?.(); }}
           className={`p-3 rounded-xl transition-all ${isDocsOpen ? 'bg-primary/20 text-primary shadow-[0_0_15px_rgba(255,49,49,0.2)]' : 'text-white/50 hover:bg-white/10 hover:text-white'}`}
           title="Documents & sources"
         >
@@ -83,7 +85,7 @@ export const FloatingToolbar = ({ onToggleDocs, isDocsOpen }: { onToggleDocs?: (
       )}
 
       <button 
-        onClick={() => setIsFocusMode(true)}
+        onClick={() => { playSound("click"); setIsFocusMode(true); }}
         className="p-3 rounded-xl transition-all text-white/50 hover:bg-white/10 hover:text-white"
         title="Mode Deep Focus"
       >
@@ -92,7 +94,7 @@ export const FloatingToolbar = ({ onToggleDocs, isDocsOpen }: { onToggleDocs?: (
 
       {rainTrack && (
         <button 
-          onClick={() => toggleTrack('rain')}
+          onClick={() => { playSound("click"); toggleTrack('rain'); }}
           className={`p-3 rounded-xl transition-all ${rainTrack.isActive ? 'bg-primary/20 text-primary shadow-[0_0_15px_rgba(255,49,49,0.2)]' : 'text-white/50 hover:bg-white/10 hover:text-white'}`}
           title="Bruit de pluie"
         >

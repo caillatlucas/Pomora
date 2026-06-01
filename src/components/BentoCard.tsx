@@ -102,6 +102,7 @@ export const BentoCard: React.FC<BentoCardProps> = ({
       dragListener={false}
       dragControls={dragControls}
       dragMomentum={false}
+      whileDrag={{ scale: 0.95, opacity: 0.8, zIndex: 60 }}
       onDragEnd={(e, info) => {
         const deltaX = Math.round(info.offset.x / 80);
         const deltaY = Math.round(info.offset.y / 80);
@@ -129,8 +130,10 @@ export const BentoCard: React.FC<BentoCardProps> = ({
       style={{
         x,
         y,
-        gridColumn: isFocusMode && id === "timer" ? undefined : `${gridState.colStart} / span ${gridState.colSpan}`,
-        gridRow: isFocusMode && id === "timer" ? undefined : `${gridState.rowStart} / span ${gridState.rowSpan}`,
+        '--col-start': gridState.colStart,
+        '--col-span': gridState.colSpan,
+        '--row-start': gridState.rowStart,
+        '--row-span': gridState.rowSpan,
         rotateX: isFocusMode && id === "timer" ? 0 : rotateX,
         rotateY: isFocusMode && id === "timer" ? 0 : rotateY,
         transform: isFocusMode && id === "timer" ? "none" : undefined,
@@ -139,16 +142,16 @@ export const BentoCard: React.FC<BentoCardProps> = ({
         backdropFilter: isFocusMode && id === "timer" ? "none" : `blur(${blurOpacity}px) saturate(180%)`,
         WebkitBackdropFilter: isFocusMode && id === "timer" ? "none" : `blur(${blurOpacity}px) saturate(180%)`,
         zIndex: isFocusMode && id === "timer" ? 100 : (isEditing ? 20 : 10)
-      }}
+      } as React.CSSProperties}
       className={`relative rounded-3xl overflow-hidden group ${
         isEditing ? 'border border-primary/50 border-dashed shadow-[0_0_20px_rgba(255,49,49,0.1)]' : ''
       } ${
         isFocusMode && id === "timer" 
           ? '!fixed !top-0 !left-0 !right-0 !bottom-0 !w-[100vw] !h-[100vh] !max-w-none !max-h-none !m-0 !p-0 bg-[#050505] !rounded-none !transform-none !z-[150]' 
-          : 'bg-[#0f0f0f]/70'
+          : 'bg-[#0f0f0f]/70 md:[grid-column:var(--col-start)/span_var(--col-span)] md:[grid-row:var(--row-start)/span_var(--row-span)]'
       } ${
         isFocusMode && id !== "timer" ? '!opacity-0 !pointer-events-none' : ''
-      } ${className}`}
+      } min-h-[160px] md:min-h-0 ${className}`}
     >
       {/* Background Pointillés en mode Édition */}
       {isEditing && (

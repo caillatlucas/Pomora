@@ -70,13 +70,13 @@ export default function Home() {
       <DocumentsDrawer isOpen={isDocsOpen} setIsOpen={setIsDocsOpen} />
       <PlaylistPreview />
       
-      <main className="min-h-screen p-6 md:p-12 lg:p-24 flex flex-col items-center overflow-x-hidden text-white relative z-10">
+      <main className="min-h-screen p-4 md:p-6 lg:p-12 flex flex-col items-center overflow-x-hidden text-white relative z-10">
         
         <motion.div 
-          className="w-full max-w-6xl pb-40 transition-opacity duration-1000"
+          className="w-full max-w-6xl transition-opacity duration-1000"
         >
-          <div className="mb-12 md:mb-20 text-center pt-10">
-            <h1 className="text-5xl md:text-7xl font-display font-bold text-primary mb-4 drop-shadow-[0_0_20px_rgba(255,49,49,0.5)]">
+          <div className="mb-6 md:mb-10 text-center pt-4">
+            <h1 className="text-4xl md:text-6xl font-display font-bold text-primary mb-2 drop-shadow-[0_0_20px_rgba(255,49,49,0.5)]">
               Pomora
             </h1>
             <p className="opacity-70 text-lg md:text-xl font-body drop-shadow-md">
@@ -228,6 +228,16 @@ export default function Home() {
               <AmbientPlayer />
             </BentoCard>
 
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="w-full max-w-6xl mt-24 mb-12 flex flex-col items-center justify-center gap-2 text-white/40 text-sm font-body">
+          <p>Made by <span className="font-bold text-white/60">lc.20ytb</span></p>
+          <div className="flex items-center gap-4">
+            <a href="mailto:caillatlucas2304@gmail.com" className="hover:text-primary transition-colors">caillatlucas2304@gmail.com</a>
+            <span>|</span>
+            <a href="https://instagram.com/lc.20ytb" target="_blank" rel="noreferrer" className="hover:text-primary transition-colors">IG: lc.20ytb</a>
           </div>
         </div>
       </main>

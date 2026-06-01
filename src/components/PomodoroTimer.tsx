@@ -5,6 +5,7 @@ import { Play, Pause, RotateCcw, SkipForward } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSettings } from "./SettingsProvider";
 import { useEditor } from "./EditorProvider";
+import { useUISound } from "@/hooks/useUISound";
 
 type Mode = "work" | "shortBreak" | "longBreak";
 
@@ -19,6 +20,7 @@ export const PomodoroTimer = () => {
   const [timeLeft, setTimeLeft] = useState(workSeconds);
   const [isActive, setIsActive] = useState(false);
   const [sessionCount, setSessionCount] = useState(0);
+  const { playSound } = useUISound();
 
   useEffect(() => {
     if (!isActive) {
@@ -58,7 +60,7 @@ export const PomodoroTimer = () => {
       setSessionCount(prev => prev + 1);
       setMode("shortBreak");
       setTimeLeft(shortBreakSeconds);
-      setIsActive(false);
+      setIsActive(true);
     } else {
       setMode("work");
       setTimeLeft(workSeconds);
@@ -87,16 +89,24 @@ export const PomodoroTimer = () => {
     };
   }, [isActive, timeLeft, handleCycleEnd]);
 
-  const togglePlay = () => setIsActive(!isActive);
+  const togglePlay = () => {
+    playSound("click");
+    setIsActive(!isActive);
+  };
 
   const reset = () => {
+    playSound("pop");
     setIsActive(false);
     setTimeLeft(mode === "work" ? workSeconds : mode === "shortBreak" ? shortBreakSeconds : longBreakSeconds);
   };
 
-  const skip = () => handleCycleEnd();
+  const skip = () => {
+    playSound("click");
+    handleCycleEnd();
+  };
 
   const setModeManually = (newMode: Mode) => {
+    playSound("click");
     setIsActive(false);
     setMode(newMode);
     setTimeLeft(newMode === "work" ? workSeconds : newMode === "shortBreak" ? shortBreakSeconds : longBreakSeconds);

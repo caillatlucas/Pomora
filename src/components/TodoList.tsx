@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trash2, Check, Plus } from "lucide-react";
+import { useUISound } from "@/hooks/useUISound";
 
 interface Task {
   id: string;
@@ -14,6 +15,7 @@ export const TodoList = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [mounted, setMounted] = useState(false);
+  const { playSound } = useUISound();
 
   // Charger les tâches depuis le localStorage au montage
   useEffect(() => {
@@ -48,17 +50,23 @@ export const TodoList = () => {
     // On ajoute en haut de la liste
     setTasks((prev) => [newTask, ...prev]);
     setInputValue("");
+    playSound("click");
   };
 
   const toggleTask = (id: string) => {
+    const task = tasks.find(t => t.id === id);
+    if (task) {
+      playSound(task.completed ? "click" : "check");
+    }
     setTasks((prev) => 
-      prev.map(task => 
-        task.id === id ? { ...task, completed: !task.completed } : task
+      prev.map(t => 
+        t.id === id ? { ...t, completed: !t.completed } : t
       )
     );
   };
 
   const deleteTask = (id: string) => {
+    playSound("pop");
     setTasks((prev) => prev.filter(task => task.id !== id));
   };
 

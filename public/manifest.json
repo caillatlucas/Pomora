@@ -1,0 +1,16 @@
+{
+  "name": "Pomora",
+  "short_name": "Pomora",
+  "description": "Votre espace de productivité LiquidGlass",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0f0f",
+  "theme_color": "#ff3131",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "192x192 512x512",
+      "type": "image/x-icon"
+    }
+  ]
+}

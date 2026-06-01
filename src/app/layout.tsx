@@ -20,7 +20,12 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: "Pomora",
-  description: "Un projet Next.js avec TailwindCSS, Framer Motion et Lucide React",
+  description: "Votre espace de productivité LiquidGlass",
+  manifest: "/manifest.json",
+};
+
+export const viewport = {
+  themeColor: "#ff3131",
 };
 
 export default function RootLayout({
