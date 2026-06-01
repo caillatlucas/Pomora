@@ -130,10 +130,10 @@ export const BentoCard: React.FC<BentoCardProps> = ({
       style={{
         x,
         y,
-        '--col-start': gridState.colStart,
-        '--col-span': gridState.colSpan,
-        '--row-start': gridState.rowStart,
-        '--row-span': gridState.rowSpan,
+        ['--col-start' as any]: gridState.colStart,
+        ['--col-span' as any]: gridState.colSpan,
+        ['--row-start' as any]: gridState.rowStart,
+        ['--row-span' as any]: gridState.rowSpan,
         rotateX: isFocusMode && id === "timer" ? 0 : rotateX,
         rotateY: isFocusMode && id === "timer" ? 0 : rotateY,
         transform: isFocusMode && id === "timer" ? "none" : undefined,
@@ -142,7 +142,7 @@ export const BentoCard: React.FC<BentoCardProps> = ({
         backdropFilter: isFocusMode && id === "timer" ? "none" : `blur(${blurOpacity}px) saturate(180%)`,
         WebkitBackdropFilter: isFocusMode && id === "timer" ? "none" : `blur(${blurOpacity}px) saturate(180%)`,
         zIndex: isFocusMode && id === "timer" ? 100 : (isEditing ? 20 : 10)
-      } as React.CSSProperties}
+      }}
       className={`relative rounded-3xl overflow-hidden group ${
         isEditing ? 'border border-primary/50 border-dashed shadow-[0_0_20px_rgba(255,49,49,0.1)]' : ''
       } ${
