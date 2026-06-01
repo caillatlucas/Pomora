@@ -152,7 +152,7 @@ export default function Home() {
                 key={doc.id}
                 id={`doc-${doc.id}`}
                 defaultColStart={(idx % 2 === 0) ? 1 : 7} 
-                defaultRowStart={5 + Math.floor(idx / 2) * 4} 
+                defaultRowStart={8 + Math.floor(idx / 2) * 4} 
                 defaultColSpan={6} defaultRowSpan={4}
               >
                 <div className="flex justify-between items-center mb-4">
@@ -172,10 +172,24 @@ export default function Home() {
                     <img src={doc.content} alt={doc.title} className="w-full h-full object-cover rounded-xl" />
                   )}
                   {doc.type === "youtube" && (
-                    <a href={doc.content} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center h-full text-center hover:bg-white/5 rounded-xl transition-colors border border-dashed border-white/20">
-                      <Music className="w-8 h-8 text-red-500 mb-2 drop-shadow-[0_0_10px_rgba(255,0,0,0.5)]" />
-                      <span className="text-xs font-bold text-white uppercase tracking-widest">Ouvrir la vidéo</span>
-                    </a>
+                    (() => {
+                      const match = doc.content.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                      const videoId = match ? match[1] : null;
+                      return videoId ? (
+                        <iframe 
+                          src={`https://www.youtube.com/embed/${videoId}`} 
+                          title={doc.title}
+                          className="w-full h-full rounded-xl border-0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                          allowFullScreen 
+                        />
+                      ) : (
+                        <a href={doc.content} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center h-full text-center hover:bg-white/5 rounded-xl transition-colors border border-dashed border-white/20">
+                          <Music className="w-8 h-8 text-red-500 mb-2 drop-shadow-[0_0_10px_rgba(255,0,0,0.5)]" />
+                          <span className="text-xs font-bold text-white uppercase tracking-widest">Lien Invalide / Ouvrir</span>
+                        </a>
+                      );
+                    })()
                   )}
                   {doc.type === "pdf" && (
                     <a href={doc.content} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center h-full text-center hover:bg-white/5 rounded-xl transition-colors border border-dashed border-white/20">
