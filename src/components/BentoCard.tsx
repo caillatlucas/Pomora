@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useRef, useState, useEffect } from "react";
-import { motion, useMotionValue, useSpring, useTransform, useMotionTemplate } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform, useMotionTemplate, useDragControls, animate } from "framer-motion";
 import { useSettings } from "./SettingsProvider";
 import { useEditor } from "./EditorProvider";
 import { Maximize2, Grip } from "lucide-react";
@@ -24,6 +24,9 @@ export const BentoCard: React.FC<BentoCardProps> = ({
   const ref = useRef<HTMLDivElement>(null);
   const { blurOpacity } = useSettings();
   const { isEditing, isFocusMode, updateRegistry, removeRegistry, checkCollision } = useEditor();
+  const dragControls = useDragControls();
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
 
   const [mounted, setMounted] = useState(false);
   const [gridState, setGridState] = useState({
@@ -95,13 +98,37 @@ export const BentoCard: React.FC<BentoCardProps> = ({
       layout={isFocusMode && id === "timer" ? false : true}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
+      drag={isEditing}
+      dragListener={false}
+      dragControls={dragControls}
+      dragMomentum={false}
+      onDragEnd={(e, info) => {
+        const deltaX = Math.round(info.offset.x / 80);
+        const deltaY = Math.round(info.offset.y / 80);
+        
+        const newCol = Math.max(1, gridState.colStart + deltaX);
+        const newRow = Math.max(1, gridState.rowStart + deltaY);
+        
+        if (!checkCollision(id, { colStart: newCol, rowStart: newRow, colSpan: gridState.colSpan, rowSpan: gridState.rowSpan })) {
+          setGridState(prev => {
+            const latest = { ...prev, colStart: newCol, rowStart: newRow };
+            localStorage.setItem(`pomora_grid_${id}`, JSON.stringify(latest));
+            return latest;
+          });
+        }
+        animate(x, 0, { type: "spring", bounce: 0, duration: 0.4 });
+        animate(y, 0, { type: "spring", bounce: 0, duration: 0.4 });
+      }}
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{
         opacity: isHidden ? 0 : 1,
         scale: isHidden ? 0.95 : 1,
+        zIndex: isEditing ? 50 : 10,
       }}
       transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
       style={{
+        x,
+        y,
         gridColumn: isFocusMode && id === "timer" ? undefined : `${gridState.colStart} / span ${gridState.colSpan}`,
         gridRow: isFocusMode && id === "timer" ? undefined : `${gridState.rowStart} / span ${gridState.rowSpan}`,
         rotateX: isFocusMode && id === "timer" ? 0 : rotateX,
@@ -159,38 +186,8 @@ export const BentoCard: React.FC<BentoCardProps> = ({
       {/* Move Handle (Grid mode) */}
       {isEditing && (
         <div 
-          className="absolute top-2 left-2 w-8 h-8 flex items-center justify-center cursor-move z-50 text-white/50 hover:text-white bg-black/50 rounded-lg"
-          onPointerDown={(e) => {
-            e.stopPropagation();
-            const startX = e.clientX;
-            const startY = e.clientY;
-            const startCol = gridState.colStart;
-            const startRow = gridState.rowStart;
-
-            const onPointerMove = (eMove: PointerEvent) => {
-              const deltaX = Math.round((eMove.clientX - startX) / 80);
-              const deltaY = Math.round((eMove.clientY - startY) / 80);
-              
-              const newCol = Math.max(1, startCol + deltaX);
-              const newRow = Math.max(1, startRow + deltaY);
-              
-              if (!checkCollision(id, { colStart: newCol, rowStart: newRow, colSpan: gridState.colSpan, rowSpan: gridState.rowSpan })) {
-                setGridState(prev => ({ ...prev, colStart: newCol, rowStart: newRow }));
-              }
-            };
-
-            const onPointerUp = () => {
-              window.removeEventListener("pointermove", onPointerMove);
-              window.removeEventListener("pointerup", onPointerUp);
-              setGridState(latest => {
-                localStorage.setItem(`pomora_grid_${id}`, JSON.stringify(latest));
-                return latest;
-              });
-            };
-
-            window.addEventListener("pointermove", onPointerMove);
-            window.addEventListener("pointerup", onPointerUp);
-          }}
+          className="absolute top-2 left-2 w-8 h-8 flex items-center justify-center cursor-move z-50 text-white/50 hover:text-white bg-black/50 rounded-lg touch-none"
+          onPointerDown={(e) => dragControls.start(e)}
         >
           <Grip className="w-4 h-4" />
         </div>

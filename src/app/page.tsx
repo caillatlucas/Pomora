@@ -12,7 +12,8 @@ import { SettingsModal } from "@/components/SettingsModal";
 import { StatCard } from "@/components/StatCard";
 import { FloatingToolbar } from "@/components/FloatingToolbar";
 import { SessionGoal } from "@/components/SessionGoal";
-import { Timer, CheckSquare, Music, BarChart2, BookOpen, Target } from "lucide-react";
+import { WeatherWidget } from "@/components/WeatherWidget";
+import { Timer, CheckSquare, Music, BarChart2, BookOpen, Target, Maximize2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useEditor } from "@/components/EditorProvider";
 
@@ -21,6 +22,7 @@ export default function Home() {
   const { isFocusMode } = useEditor();
   const [isDocsOpen, setIsDocsOpen] = useState(false);
   const [droppedDocs, setDroppedDocs] = useState<DocItem[]>([]);
+  const [selectedMedia, setSelectedMedia] = useState<DocItem | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -63,6 +65,7 @@ export default function Home() {
     <>
       <BackgroundEngine />
       <SettingsModal />
+      <WeatherWidget />
       <FloatingToolbar onToggleDocs={() => setIsDocsOpen(prev => !prev)} isDocsOpen={isDocsOpen} />
       <DocumentsDrawer isOpen={isDocsOpen} setIsOpen={setIsDocsOpen} />
       <PlaylistPreview />
@@ -169,20 +172,30 @@ export default function Home() {
                     <p className="text-sm text-white/70 whitespace-pre-wrap">{doc.content}</p>
                   )}
                   {doc.type === "image" && (
-                    <img src={doc.content} alt={doc.title} className="w-full h-full object-cover rounded-xl" />
+                    <div className="relative group w-full h-full">
+                      <img src={doc.content} alt={doc.title} className="w-full h-full object-cover rounded-xl" />
+                      <button onClick={() => setSelectedMedia(doc)} className="absolute top-2 right-2 p-2 bg-black/50 hover:bg-primary text-white rounded-lg opacity-0 group-hover:opacity-100 transition-all backdrop-blur-md">
+                        <Maximize2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   )}
                   {doc.type === "youtube" && (
                     (() => {
                       const match = doc.content.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
                       const videoId = match ? match[1] : null;
                       return videoId ? (
-                        <iframe 
-                          src={`https://www.youtube.com/embed/${videoId}`} 
-                          title={doc.title}
-                          className="w-full h-full rounded-xl border-0"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                          allowFullScreen 
-                        />
+                        <div className="relative group w-full h-full">
+                          <iframe 
+                            src={`https://www.youtube.com/embed/${videoId}`} 
+                            title={doc.title}
+                            className="w-full h-full rounded-xl border-0 pointer-events-auto"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowFullScreen 
+                          />
+                          <button onClick={() => setSelectedMedia(doc)} className="absolute top-2 right-2 p-2 bg-black/50 hover:bg-primary text-white rounded-lg opacity-0 group-hover:opacity-100 transition-all backdrop-blur-md z-10">
+                            <Maximize2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       ) : (
                         <a href={doc.content} target="_blank" rel="noreferrer" className="flex flex-col items-center justify-center h-full text-center hover:bg-white/5 rounded-xl transition-colors border border-dashed border-white/20">
                           <Music className="w-8 h-8 text-red-500 mb-2 drop-shadow-[0_0_10px_rgba(255,0,0,0.5)]" />
@@ -218,6 +231,50 @@ export default function Home() {
           </div>
         </div>
       </main>
+
+      {/* Fullscreen Media Modal */}
+      <AnimatePresence>
+        {selectedMedia && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 md:p-12"
+            onClick={() => setSelectedMedia(null)}
+          >
+            <button 
+              onClick={() => setSelectedMedia(null)}
+              className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors z-50"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <motion.div 
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-6xl max-h-[85vh] h-full bg-black rounded-2xl overflow-hidden shadow-2xl border border-white/10"
+            >
+              {selectedMedia.type === "image" && (
+                <img src={selectedMedia.content} alt={selectedMedia.title} className="w-full h-full object-contain" />
+              )}
+              {selectedMedia.type === "youtube" && (() => {
+                const match = selectedMedia.content.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+                const videoId = match ? match[1] : null;
+                return videoId ? (
+                  <iframe 
+                    src={`https://www.youtube.com/embed/${videoId}?autoplay=1`} 
+                    title={selectedMedia.title}
+                    className="w-full h-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen 
+                  />
+                ) : null;
+              })()}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

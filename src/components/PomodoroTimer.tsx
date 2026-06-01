@@ -8,16 +8,23 @@ import { useEditor } from "./EditorProvider";
 
 type Mode = "work" | "shortBreak" | "longBreak";
 
-const WORK_TIME = 25 * 60;
-const SHORT_BREAK = 5 * 60;
-const LONG_BREAK = 15 * 60;
-
 export const PomodoroTimer = () => {
+  const { addWorkMinutes, notificationSound, workTime, shortBreakTime, longBreakTime } = useSettings();
+  
+  const workSeconds = workTime * 60;
+  const shortBreakSeconds = shortBreakTime * 60;
+  const longBreakSeconds = longBreakTime * 60;
+
   const [mode, setMode] = useState<Mode>("work");
-  const [timeLeft, setTimeLeft] = useState(WORK_TIME);
+  const [timeLeft, setTimeLeft] = useState(workSeconds);
   const [isActive, setIsActive] = useState(false);
   const [sessionCount, setSessionCount] = useState(0);
-  const { addWorkMinutes, notificationSound } = useSettings();
+
+  useEffect(() => {
+    if (!isActive) {
+      setTimeLeft(mode === "work" ? workSeconds : mode === "shortBreak" ? shortBreakSeconds : longBreakSeconds);
+    }
+  }, [workSeconds, shortBreakSeconds, longBreakSeconds]);
 
   useEffect(() => {
     if (typeof window !== "undefined" && "Notification" in window) {
@@ -46,17 +53,18 @@ export const PomodoroTimer = () => {
 
   const handleCycleEnd = useCallback(() => {
     playNotification();
-    setIsActive(false);
     if (mode === "work") {
-      addWorkMinutes(WORK_TIME / 60);
+      addWorkMinutes(workTime);
       setSessionCount(prev => prev + 1);
       setMode("shortBreak");
-      setTimeLeft(SHORT_BREAK);
+      setTimeLeft(shortBreakSeconds);
+      setIsActive(false);
     } else {
       setMode("work");
-      setTimeLeft(WORK_TIME);
+      setTimeLeft(workSeconds);
+      setIsActive(true);
     }
-  }, [mode, playNotification, addWorkMinutes]);
+  }, [mode, playNotification, addWorkMinutes, workTime, workSeconds, shortBreakSeconds, longBreakSeconds]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
@@ -83,7 +91,7 @@ export const PomodoroTimer = () => {
 
   const reset = () => {
     setIsActive(false);
-    setTimeLeft(mode === "work" ? WORK_TIME : mode === "shortBreak" ? SHORT_BREAK : LONG_BREAK);
+    setTimeLeft(mode === "work" ? workSeconds : mode === "shortBreak" ? shortBreakSeconds : longBreakSeconds);
   };
 
   const skip = () => handleCycleEnd();
@@ -91,7 +99,7 @@ export const PomodoroTimer = () => {
   const setModeManually = (newMode: Mode) => {
     setIsActive(false);
     setMode(newMode);
-    setTimeLeft(newMode === "work" ? WORK_TIME : newMode === "shortBreak" ? SHORT_BREAK : LONG_BREAK);
+    setTimeLeft(newMode === "work" ? workSeconds : newMode === "shortBreak" ? shortBreakSeconds : longBreakSeconds);
   };
 
   const formatTime = (seconds: number) => {
@@ -100,7 +108,7 @@ export const PomodoroTimer = () => {
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
-  const totalTime = mode === "work" ? WORK_TIME : mode === "shortBreak" ? SHORT_BREAK : LONG_BREAK;
+  const totalTime = mode === "work" ? workSeconds : mode === "shortBreak" ? shortBreakSeconds : longBreakSeconds;
   const progress = ((totalTime - timeLeft) / totalTime) * 100;
   const radius = 90;
   const strokeWidth = 2;

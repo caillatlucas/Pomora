@@ -2,26 +2,50 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings, X, Save } from "lucide-react";
+import { Settings, X, Save, Trash2 } from "lucide-react";
 import { useSettings } from "./SettingsProvider";
 import { useToast } from "./ToastProvider";
 
 export const SettingsModal = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { backgroundUrl, setBackgroundUrl, blurOpacity, setBlurOpacity, youtubeUrl, setYoutubeUrl, notificationSound, setNotificationSound } = useSettings();
+  const { 
+    backgroundUrl, setBackgroundUrl, 
+    blurOpacity, setBlurOpacity, 
+    youtubeUrl, setYoutubeUrl, 
+    notificationSound, setNotificationSound,
+    workTime, setWorkTime,
+    shortBreakTime, setShortBreakTime,
+    longBreakTime, setLongBreakTime,
+    weatherCity, setWeatherCity
+  } = useSettings();
   const { addToast } = useToast();
   const [bgInput, setBgInput] = useState(backgroundUrl || "");
   const [ytInput, setYtInput] = useState(youtubeUrl || "");
   const [notifInput, setNotifInput] = useState(notificationSound || "");
   const [localBlur, setLocalBlur] = useState(blurOpacity);
+  const [localWork, setLocalWork] = useState(workTime);
+  const [localShortBreak, setLocalShortBreak] = useState(shortBreakTime);
+  const [localLongBreak, setLocalLongBreak] = useState(longBreakTime);
+  const [cityInput, setCityInput] = useState(weatherCity || "");
 
   const handleSave = () => {
     setBackgroundUrl(bgInput);
     setYoutubeUrl(ytInput);
     setNotificationSound(notifInput);
     setBlurOpacity(localBlur);
+    setWorkTime(localWork);
+    setShortBreakTime(localShortBreak);
+    setLongBreakTime(localLongBreak);
+    setWeatherCity(cityInput);
     setIsOpen(false);
-    addToast("Paramètres LiquidGlass sauvegardés.");
+    addToast("Paramètres sauvegardés.");
+  };
+
+  const handleClearCache = () => {
+    if (confirm("Voulez-vous vraiment effacer toutes les données et paramètres ?")) {
+      localStorage.clear();
+      window.location.reload();
+    }
   };
 
   return (
@@ -101,15 +125,65 @@ export const SettingsModal = () => {
                     className="w-full accent-primary"
                   />
                 </div>
+
+                <div className="flex gap-4">
+                  <div className="flex flex-col gap-2 w-1/3">
+                    <label className="text-sm font-medium text-white/70">Travail (min)</label>
+                    <input 
+                      type="number" 
+                      value={localWork}
+                      onChange={(e) => setLocalWork(Number(e.target.value))}
+                      className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-primary transition-colors"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2 w-1/3">
+                    <label className="text-sm font-medium text-white/70">Pause courte</label>
+                    <input 
+                      type="number" 
+                      value={localShortBreak}
+                      onChange={(e) => setLocalShortBreak(Number(e.target.value))}
+                      className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-primary transition-colors"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-2 w-1/3">
+                    <label className="text-sm font-medium text-white/70">Pause longue</label>
+                    <input 
+                      type="number" 
+                      value={localLongBreak}
+                      onChange={(e) => setLocalLongBreak(Number(e.target.value))}
+                      className="w-full bg-black/50 border border-white/10 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-primary transition-colors"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label className="text-sm font-medium text-white/70">Ville (Météo)</label>
+                  <input 
+                    type="text" 
+                    value={cityInput}
+                    onChange={(e) => setCityInput(e.target.value)}
+                    placeholder="Ex: Paris"
+                    className="w-full bg-black/50 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-primary transition-colors"
+                  />
+                </div>
               </div>
 
-              <button 
-                onClick={handleSave}
-                className="mt-4 w-full py-3 bg-primary text-white font-medium rounded-xl hover:bg-primary/90 transition-colors shadow-[0_0_15px_rgba(255,49,49,0.3)] flex items-center justify-center gap-2"
-              >
-                <Save className="w-5 h-5" />
-                Appliquer
-              </button>
+              <div className="flex gap-4 mt-4">
+                <button 
+                  onClick={handleClearCache}
+                  className="flex-1 py-3 bg-red-500/20 text-red-500 font-medium rounded-xl hover:bg-red-500/30 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Trash2 className="w-5 h-5" />
+                  Effacer
+                </button>
+                <button 
+                  onClick={handleSave}
+                  className="flex-[2] py-3 bg-primary text-white font-medium rounded-xl hover:bg-primary/90 transition-colors shadow-[0_0_15px_rgba(255,49,49,0.3)] flex items-center justify-center gap-2"
+                >
+                  <Save className="w-5 h-5" />
+                  Appliquer
+                </button>
+              </div>
             </motion.div>
           </div>
         )}

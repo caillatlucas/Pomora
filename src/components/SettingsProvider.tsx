@@ -21,6 +21,14 @@ interface SettingsContextType {
   addWorkMinutes: (minutes: number) => void;
   notificationSound: string;
   setNotificationSound: (url: string) => void;
+  workTime: number;
+  setWorkTime: (time: number) => void;
+  shortBreakTime: number;
+  setShortBreakTime: (time: number) => void;
+  longBreakTime: number;
+  setLongBreakTime: (time: number) => void;
+  weatherCity: string;
+  setWeatherCity: (city: string) => void;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -47,6 +55,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const [dailyWorkLog, setDailyWorkLog] = useState<Record<string, number>>({});
   const [currentStreak, setCurrentStreak] = useState(0);
   const [notificationSound, setNotificationSound] = useState("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+  const [workTime, setWorkTime] = useState(25);
+  const [shortBreakTime, setShortBreakTime] = useState(5);
+  const [longBreakTime, setLongBreakTime] = useState(15);
+  const [weatherCity, setWeatherCity] = useState("Paris");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -59,6 +71,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     const streak = localStorage.getItem("pomora_currentStreak");
     const totalMinutes = localStorage.getItem("pomora_totalWorkMinutes");
     const notif = localStorage.getItem("pomora_notificationSound");
+    const storedWorkTime = localStorage.getItem("pomora_workTime");
+    const storedShortBreak = localStorage.getItem("pomora_shortBreakTime");
+    const storedLongBreak = localStorage.getItem("pomora_longBreakTime");
+    const storedCity = localStorage.getItem("pomora_weatherCity");
 
     if (bg) setBackgroundUrl(bg);
     if (blur) setBlurOpacity(Number(blur));
@@ -68,6 +84,10 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
     if (streak) setCurrentStreak(Number(streak));
     if (totalMinutes) setTotalWorkMinutes(Number(totalMinutes));
     if (notif) setNotificationSound(notif);
+    if (storedWorkTime) setWorkTime(Number(storedWorkTime));
+    if (storedShortBreak) setShortBreakTime(Number(storedShortBreak));
+    if (storedLongBreak) setLongBreakTime(Number(storedLongBreak));
+    if (storedCity) setWeatherCity(storedCity);
   }, []);
 
   const handleSetBg = (url: string) => {
@@ -93,6 +113,26 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const handleSetNotificationSound = (url: string) => {
     setNotificationSound(url);
     localStorage.setItem("pomora_notificationSound", url);
+  };
+
+  const handleSetWorkTime = (time: number) => {
+    setWorkTime(time);
+    localStorage.setItem("pomora_workTime", time.toString());
+  };
+
+  const handleSetShortBreakTime = (time: number) => {
+    setShortBreakTime(time);
+    localStorage.setItem("pomora_shortBreakTime", time.toString());
+  };
+
+  const handleSetLongBreakTime = (time: number) => {
+    setLongBreakTime(time);
+    localStorage.setItem("pomora_longBreakTime", time.toString());
+  };
+
+  const handleSetWeatherCity = (city: string) => {
+    setWeatherCity(city);
+    localStorage.setItem("pomora_weatherCity", city);
   };
 
   const addWorkMinutes = (minutes: number) => {
@@ -138,7 +178,15 @@ export const SettingsProvider = ({ children }: { children: ReactNode }) => {
         currentStreak,
         addWorkMinutes,
         notificationSound,
-        setNotificationSound: handleSetNotificationSound
+        setNotificationSound: handleSetNotificationSound,
+        workTime,
+        setWorkTime: handleSetWorkTime,
+        shortBreakTime,
+        setShortBreakTime: handleSetShortBreakTime,
+        longBreakTime,
+        setLongBreakTime: handleSetLongBreakTime,
+        weatherCity,
+        setWeatherCity: handleSetWeatherCity
       }}
     >
       <div style={{ opacity: mounted ? 1 : 0 }} className="transition-opacity duration-300 min-h-screen">
