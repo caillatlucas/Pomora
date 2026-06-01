@@ -18,10 +18,16 @@ const playfair = Playfair_Display({
   display: 'swap',
 });
 
+const isGithubActions = process.env.GITHUB_ACTIONS || false;
+const basePath = isGithubActions ? "/Pomora" : "";
+
 export const metadata: Metadata = {
   title: "Pomora",
   description: "Votre espace de productivité LiquidGlass",
-  manifest: "/manifest.json",
+  manifest: `${basePath}/manifest.json`,
+  icons: {
+    icon: `${basePath}/favicon.ico`,
+  },
 };
 
 export const viewport = {
